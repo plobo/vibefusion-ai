@@ -1,0 +1,31 @@
+# Prometheus alerting rules for the VibeFusion API.
+groups:
+  - name: vibefusion
+    rules:
+      - alert: ApiErrorRateHigh
+        expr: sum(rate(http_errors_total[5m])) > 0.5
+        for: 10m
+        labels: { severity: page }
+        annotations: { summary: "API 5xx rate above 0.5/s" }
+      - alert: StreamStartSlow
+        expr: stream_start_latency_ms{quantile="0.95"} > 3000
+        for: 15m
+        labels: { severity: ticket }
+        annotations: { summary: "p95 stream start above 3 s target" }
+      - alert: PlaybackFailures
+        expr: sum(rate(playback_failures_total[10m])) > 0.2
+        for: 10m
+        labels: { severity: ticket }
+      - alert: SignedUrlFailures
+        expr: sum(rate(signed_url_failures_total[10m])) > 0.2
+        for: 10m
+        labels: { severity: ticket }
+      - alert: AiProviderErrors
+        expr: sum(rate(ai_provider_errors_total[15m])) > 0.1
+        for: 15m
+        labels: { severity: ticket }
+        annotations: { summary: "LLM provider failing; deterministic planner is serving plans" }
+      - alert: RightsValidationSpike
+        expr: sum(rate(rights_validation_failures_total[15m])) > 1
+        for: 15m
+        labels: { severity: ticket }

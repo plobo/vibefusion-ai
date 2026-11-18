@@ -1,0 +1,392 @@
+{
+  "description": "Each entry must be rejected by the validator with the listed issue code.",
+  "cases": [
+    {
+      "expect": "SCHEMA",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "f717687c-0971-5267-8e31-e741a861017e",
+            "role": "music",
+            "startMs": 0,
+            "sourceInMs": 0,
+            "durationMs": 120000,
+            "gainDb": 40,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          }
+        ],
+        "transitions": [],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "SCHEMA",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "f717687c-0971-5267-8e31-e741a861017e",
+            "role": "music",
+            "startMs": -5,
+            "sourceInMs": 0,
+            "durationMs": 120000,
+            "gainDb": -12,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          }
+        ],
+        "transitions": [],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "SCHEMA",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "f717687c-0971-5267-8e31-e741a861017e",
+            "role": "music",
+            "startMs": 0,
+            "sourceInMs": 0,
+            "durationMs": 120000,
+            "gainDb": -12,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          },
+          {
+            "id": "layer-2",
+            "assetId": "14583d0f-6c61-53db-9ff4-c7b5a026ee10",
+            "role": "music",
+            "startMs": 20000,
+            "sourceInMs": 0,
+            "durationMs": 80000,
+            "gainDb": -8,
+            "fadeInMs": 10000,
+            "fadeOutMs": 12000,
+            "loop": true,
+            "pan": 0
+          },
+          {
+            "id": "layer-3",
+            "assetId": "2ed15343-f2bc-5453-8f30-8cf5a98fc1b3",
+            "role": "speech",
+            "startMs": 40000,
+            "sourceInMs": 0,
+            "durationMs": 40000,
+            "gainDb": 0,
+            "fadeInMs": 1500,
+            "fadeOutMs": 2500,
+            "loop": false,
+            "pan": 0
+          }
+        ],
+        "transitions": [
+          {
+            "fromLayerId": "layer-1",
+            "toLayerId": "layer-2",
+            "startMs": 0,
+            "durationMs": 1000,
+            "curve": "s_curve"
+          }
+        ],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "DUPLICATE_LAYER_ID",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "f717687c-0971-5267-8e31-e741a861017e",
+            "role": "music",
+            "startMs": 0,
+            "sourceInMs": 0,
+            "durationMs": 120000,
+            "gainDb": -12,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          },
+          {
+            "id": "layer-1",
+            "assetId": "14583d0f-6c61-53db-9ff4-c7b5a026ee10",
+            "role": "music",
+            "startMs": 20000,
+            "sourceInMs": 0,
+            "durationMs": 80000,
+            "gainDb": -8,
+            "fadeInMs": 10000,
+            "fadeOutMs": 12000,
+            "loop": true,
+            "pan": 0
+          }
+        ],
+        "transitions": [],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "UNKNOWN_ASSET",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "00000000-0000-4000-8000-000000000000",
+            "role": "music",
+            "startMs": 0,
+            "sourceInMs": 0,
+            "durationMs": 120000,
+            "gainDb": -12,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          }
+        ],
+        "transitions": [],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "NOT_CLEARED_FOR_MIX",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "0926ae20-7ce8-5713-a244-83f68a608f9e",
+            "role": "music",
+            "startMs": 0,
+            "sourceInMs": 0,
+            "durationMs": 120000,
+            "gainDb": -12,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          }
+        ],
+        "transitions": [],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "LAYER_OUT_OF_RANGE",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "f717687c-0971-5267-8e31-e741a861017e",
+            "role": "music",
+            "startMs": 130000,
+            "sourceInMs": 0,
+            "durationMs": 10000,
+            "gainDb": -12,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          }
+        ],
+        "transitions": [],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "SOURCE_TOO_SHORT",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-3",
+            "assetId": "2ed15343-f2bc-5453-8f30-8cf5a98fc1b3",
+            "role": "speech",
+            "startMs": 0,
+            "sourceInMs": 0,
+            "durationMs": 60000,
+            "gainDb": 0,
+            "fadeInMs": 1500,
+            "fadeOutMs": 2500,
+            "loop": false,
+            "pan": 0
+          }
+        ],
+        "transitions": [],
+        "warnings": []
+      }
+    },
+    {
+      "expect": "BAD_TRANSITION",
+      "plan": {
+        "version": 1,
+        "title": "Rise with Purpose",
+        "description": "A gradual, uplifting session built from synthetic fixtures",
+        "durationMs": 120000,
+        "tempoBpm": 120,
+        "masterGainDb": -3,
+        "ducking": {
+          "enabled": true,
+          "amountDb": 9,
+          "attackMs": 300,
+          "releaseMs": 800
+        },
+        "layers": [
+          {
+            "id": "layer-1",
+            "assetId": "f717687c-0971-5267-8e31-e741a861017e",
+            "role": "music",
+            "startMs": 0,
+            "sourceInMs": 0,
+            "durationMs": 120000,
+            "gainDb": -12,
+            "fadeInMs": 5000,
+            "fadeOutMs": 8000,
+            "loop": true,
+            "pan": 0
+          },
+          {
+            "id": "layer-2",
+            "assetId": "14583d0f-6c61-53db-9ff4-c7b5a026ee10",
+            "role": "music",
+            "startMs": 20000,
+            "sourceInMs": 0,
+            "durationMs": 80000,
+            "gainDb": -8,
+            "fadeInMs": 10000,
+            "fadeOutMs": 12000,
+            "loop": true,
+            "pan": 0
+          },
+          {
+            "id": "layer-3",
+            "assetId": "2ed15343-f2bc-5453-8f30-8cf5a98fc1b3",
+            "role": "speech",
+            "startMs": 40000,
+            "sourceInMs": 0,
+            "durationMs": 40000,
+            "gainDb": 0,
+            "fadeInMs": 1500,
+            "fadeOutMs": 2500,
+            "loop": false,
+            "pan": 0
+          }
+        ],
+        "transitions": [
+          {
+            "fromLayerId": "layer-1",
+            "toLayerId": "ghost",
+            "startMs": 0,
+            "durationMs": 1000,
+            "curve": "linear"
+          }
+        ],
+        "warnings": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+FROM node:20.18-bookworm-slim AS build
+WORKDIR /app
+COPY backend/package*.json backend/
+RUN cd backend && npm ci
+COPY backend backend
+COPY contracts contracts
+RUN cd backend && npm run build
+
+FROM node:20.18-bookworm-slim
+ENV NODE_ENV=production
+WORKDIR /app
+COPY backend/package*.json backend/
+RUN cd backend && npm ci --omit=dev
+COPY --from=build /app/backend/dist backend/dist
+COPY backend/migrations backend/migrations
+COPY contracts contracts
+USER node
+EXPOSE 8080
+CMD ["node", "backend/dist/src/index.js"]

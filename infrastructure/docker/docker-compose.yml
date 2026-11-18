@@ -1,0 +1,29 @@
+# Local production-like stack: PostgreSQL + API. Secrets here are dev placeholders only.
+services:
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: vibefusion
+      POSTGRES_PASSWORD: vibefusion
+      POSTGRES_DB: vibefusion
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vibefusion"]
+      interval: 5s
+      retries: 10
+  api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+    environment:
+      DATABASE_URL: postgres://vibefusion:vibefusion@db:5432/vibefusion
+      JWT_SECRET: dev-only-change-me
+      MEDIA_SIGNING_SECRET: dev-only-change-me-too
+      PUBLIC_BASE_URL: http://localhost:8080
+      INGEST_ON_START: "true"
+    ports: ["8080:8080"]
+    depends_on:
+      db: { condition: service_healthy }
+volumes:
+  pgdata: {}

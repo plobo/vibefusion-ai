@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibefusion.app/schemas/mix-plan.v1.json",
+  "title": "VibeFusion Mix Plan v1",
+  "description": "Platform-neutral, versioned mix plan. Produced by the AI planner or the manual editor; rendered deterministically by each platform's FusionPlaybackEngine. Cross-field rules (unique layer ids, layer bounds within session duration, transition references, source-duration limits, rights) are enforced by the semantic validator and documented in docs/AUDIO_ENGINE.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "title", "durationMs", "layers"],
+  "properties": {
+    "version": { "const": 1 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": "string", "maxLength": 500 },
+    "durationMs": { "type": "integer", "minimum": 10000, "maximum": 7200000 },
+    "tempoBpm": { "type": ["number", "null"], "minimum": 40, "maximum": 220 },
+    "snapToBeat": { "type": "boolean", "default": false },
+    "masterGainDb": { "type": "number", "minimum": -24, "maximum": 0, "default": -3 },
+    "ducking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "amountDb": { "type": "number", "minimum": 0, "maximum": 24, "default": 9 },
+        "attackMs": { "type": "integer", "minimum": 0, "maximum": 5000, "default": 300 },
+        "releaseMs": { "type": "integer", "minimum": 0, "maximum": 10000, "default": 800 }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/layer" }
+    },
+    "transitions": {
+      "type": "array",
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/transition" }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "maxLength": 300 }
+    }
+  },
+  "$defs": {
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "assetId", "role", "startMs", "sourceInMs", "durationMs", "gainDb", "fadeInMs", "fadeOutMs", "loop", "pan"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+        "assetId": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "role": { "enum": ["music", "speech", "ambience", "percussion", "effect"] },
+        "startMs": { "type": "integer", "minimum": 0, "maximum": 7200000 },
+        "sourceInMs": { "type": "integer", "minimum": 0, "maximum": 7200000 },
+        "durationMs": { "type": "integer", "minimum": 1000, "maximum": 7200000 },
+        "gainDb": { "type": "number", "minimum": -60, "maximum": 6 },
+        "fadeInMs": { "type": "integer", "minimum": 0, "maximum": 120000 },
+        "fadeOutMs": { "type": "integer", "minimum": 0, "maximum": 120000 },
+        "loop": { "type": "boolean" },
+        "pan": { "type": "number", "minimum": -1, "maximum": 1 },
+        "muted": { "type": "boolean", "default": false },
+        "solo": { "type": "boolean", "default": false }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fromLayerId", "toLayerId", "startMs", "durationMs", "curve"],
+      "properties": {
+        "fromLayerId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+        "toLayerId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+        "startMs": { "type": "integer", "minimum": 0, "maximum": 7200000 },
+        "durationMs": { "type": "integer", "minimum": 0, "maximum": 60000 },
+        "curve": { "enum": ["linear", "equal_power", "exponential"] }
+      }
+    }
+  }
+}

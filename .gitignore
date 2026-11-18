@@ -1,0 +1,19 @@
+.DS_Store
+# Backend
+backend/node_modules/
+backend/dist/
+backend/.data/
+backend/.env
+# iOS
+ios/VibeFusion.xcodeproj/xcuserdata/
+ios/**/xcuserdata/
+ios/**/.build/
+ios/**/DerivedData/
+# Android
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.kotlin/
+android/.idea/
+backend/.data-server.log
+*.log

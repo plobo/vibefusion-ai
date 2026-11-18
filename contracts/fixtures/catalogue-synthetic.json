@@ -1,0 +1,181 @@
+{
+  "description": "Synthetic, project-owned dev catalogue (served by the backend when SYNTHETIC_CATALOGUE=true).",
+  "items": [
+    {
+      "id": "f717687c-0971-5267-8e31-e741a861017e",
+      "title": "Warm Pad (A minor)",
+      "assetType": "loop",
+      "durationMs": 32000,
+      "genres": [
+        "ambient",
+        "cinematic"
+      ],
+      "moods": [
+        "calm",
+        "uplifting"
+      ],
+      "topics": [],
+      "key": "Am",
+      "allowedUses": [
+        "stream",
+        "offline_download",
+        "mix",
+        "derivative_render"
+      ],
+      "licenseType": "owned"
+    },
+    {
+      "id": "7917f215-b788-5efb-89e6-593c8d19bf75",
+      "title": "Pulse Groove 120",
+      "assetType": "loop",
+      "durationMs": 16000,
+      "genres": [
+        "electronic"
+      ],
+      "moods": [
+        "energetic",
+        "focus"
+      ],
+      "topics": [],
+      "key": null,
+      "allowedUses": [
+        "stream",
+        "offline_download",
+        "mix",
+        "derivative_render"
+      ],
+      "licenseType": "owned"
+    },
+    {
+      "id": "23bf7fcf-02ca-5858-a4b9-fa957210bf7d",
+      "title": "Cinematic Drone",
+      "assetType": "stem",
+      "durationMs": 32000,
+      "genres": [
+        "cinematic",
+        "ambient"
+      ],
+      "moods": [
+        "calm",
+        "dramatic"
+      ],
+      "topics": [],
+      "key": "A",
+      "allowedUses": [
+        "stream",
+        "offline_download",
+        "mix",
+        "derivative_render"
+      ],
+      "licenseType": "owned"
+    },
+    {
+      "id": "14583d0f-6c61-53db-9ff4-c7b5a026ee10",
+      "title": "Arpeggio Lights",
+      "assetType": "loop",
+      "durationMs": 16000,
+      "genres": [
+        "electronic",
+        "cinematic"
+      ],
+      "moods": [
+        "uplifting",
+        "energetic"
+      ],
+      "topics": [],
+      "key": "Am",
+      "allowedUses": [
+        "stream",
+        "offline_download",
+        "mix",
+        "derivative_render"
+      ],
+      "licenseType": "owned"
+    },
+    {
+      "id": "9427e69b-4051-5c69-80f8-f8e2f6148350",
+      "title": "Rain Texture",
+      "assetType": "loop",
+      "durationMs": 20000,
+      "genres": [
+        "ambient"
+      ],
+      "moods": [
+        "calm",
+        "sleep"
+      ],
+      "topics": [],
+      "key": null,
+      "allowedUses": [
+        "stream",
+        "offline_download",
+        "mix",
+        "derivative_render"
+      ],
+      "licenseType": "owned"
+    },
+    {
+      "id": "b043b8ad-611f-59cd-b7ec-33ca2585569f",
+      "title": "Bell Melody (Piano-style)",
+      "assetType": "music",
+      "durationMs": 48000,
+      "genres": [
+        "classical",
+        "piano"
+      ],
+      "moods": [
+        "calm",
+        "uplifting"
+      ],
+      "topics": [],
+      "key": "Am",
+      "allowedUses": [
+        "stream",
+        "offline_download",
+        "mix",
+        "derivative_render"
+      ],
+      "licenseType": "owned"
+    },
+    {
+      "id": "0926ae20-7ce8-5713-a244-83f68a608f9e",
+      "title": "Stream-Only Test Track",
+      "assetType": "music",
+      "durationMs": 30000,
+      "genres": [
+        "electronic"
+      ],
+      "moods": [
+        "uplifting"
+      ],
+      "topics": [],
+      "key": "C",
+      "allowedUses": [
+        "stream"
+      ],
+      "licenseType": "owned"
+    },
+    {
+      "id": "2ed15343-f2bc-5453-8f30-8cf5a98fc1b3",
+      "title": "Voice Guide Test Signal",
+      "assetType": "speech",
+      "durationMs": 40000,
+      "genres": [],
+      "moods": [
+        "uplifting"
+      ],
+      "topics": [
+        "resilience",
+        "discipline"
+      ],
+      "key": null,
+      "allowedUses": [
+        "stream",
+        "offline_download",
+        "mix",
+        "derivative_render"
+      ],
+      "licenseType": "owned"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+-keepattributes *Annotation*, InnerClasses, Signature
+-keep,includedescriptorclasses class app.vibefusion.**$$serializer { *; }
+-keepclassmembers class app.vibefusion.** { *** Companion; }
+-keepclasseswithmembers class app.vibefusion.** { kotlinx.serialization.KSerializer serializer(...); }
+-dontwarn org.slf4j.**

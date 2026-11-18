@@ -1,0 +1,672 @@
+openapi: 3.1.0
+info:
+  title: VibeFusion AI API
+  version: 1.0.0
+  description: |
+    Shared REST/JSON API for the VibeFusion iOS and Android apps (modular-monolith backend).
+    All endpoints require a bearer access token except public catalogue discovery (guest access).
+    Errors always use the ErrorEnvelope schema. Media URLs are short-lived and signed; clients must
+    never persist them or trust URLs supplied by AI output.
+servers:
+  - url: http://localhost:8080
+    description: Local development
+security:
+  - bearer: []
+tags:
+  - name: auth
+  - name: me
+  - name: catalogue
+  - name: playback
+  - name: library
+  - name: playlists
+  - name: podcasts
+  - name: motivation
+  - name: fusion
+  - name: admin
+  - name: ops
+paths:
+  /healthz:
+    get: { tags: [ops], security: [], summary: Liveness, responses: { "200": { description: OK } } }
+  /readyz:
+    get: { tags: [ops], security: [], summary: Readiness (database reachable), responses: { "200": { description: OK } } }
+  /metrics:
+    get: { tags: [ops], security: [], summary: Prometheus metrics, responses: { "200": { description: Metrics text } } }
+
+  /v1/auth/register:
+    post:
+      tags: [auth]
+      security: []
+      summary: Create an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                displayName: { type: string }
+                locale: { type: string, example: en-CA }
+                territory: { type: string, pattern: "^[A-Z]{2}$" }
+      responses:
+        "201": { $ref: "#/components/responses/Tokens" }
+        "409": { $ref: "#/components/responses/Error" }
+  /v1/auth/login:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [email, password], properties: { email: { type: string }, password: { type: string } } }
+      responses:
+        "200": { $ref: "#/components/responses/Tokens" }
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/auth/guest:
+    post:
+      tags: [auth]
+      security: []
+      summary: Start a guest session (browse and stream; no downloads or sharing)
+      responses: { "201": { $ref: "#/components/responses/Tokens" } }
+  /v1/auth/refresh:
+    post:
+      tags: [auth]
+      security: []
+      summary: Rotate refresh token and issue a new access token
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [refreshToken], properties: { refreshToken: { type: string } } } } }
+      responses:
+        "200": { $ref: "#/components/responses/Tokens" }
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/auth/logout:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { refreshToken: { type: string } } } } }
+      responses: { "204": { description: Logged out } }
+  /v1/auth/upgrade:
+    post:
+      tags: [auth]
+      summary: Convert a guest session into an account, keeping library data
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [email, password], properties: { email: { type: string }, password: { type: string }, displayName: { type: string } } } } }
+      responses: { "200": { $ref: "#/components/responses/Tokens" } }
+
+  /v1/me:
+    get:
+      tags: [me]
+      responses: { "200": { description: Current user, content: { application/json: { schema: { $ref: "#/components/schemas/Me" } } } } }
+    patch:
+      tags: [me]
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { displayName: { type: string }, locale: { type: string }, territory: { type: string } } } } }
+      responses: { "200": { description: Updated user, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } } }
+    delete:
+      tags: [me]
+      summary: Delete account and purge personal data
+      responses: { "204": { description: Deleted } }
+  /v1/me/preferences:
+    get:
+      tags: [me]
+      responses: { "200": { description: Preferences, content: { application/json: { schema: { $ref: "#/components/schemas/Preferences" } } } } }
+    put:
+      tags: [me]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/Preferences" } } } }
+      responses: { "200": { description: Preferences, content: { application/json: { schema: { $ref: "#/components/schemas/Preferences" } } } } }
+  /v1/me/export:
+    get:
+      tags: [me]
+      summary: Export all personal data
+      responses: { "200": { description: Data export } }
+
+  /v1/home:
+    get:
+      tags: [catalogue]
+      security: [{}, { bearer: [] }]
+      responses:
+        "200":
+          description: Personalized shelves
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  greeting: { type: string }
+                  shelves: { type: array, items: { $ref: "#/components/schemas/Shelf" } }
+  /v1/catalogue:
+    get:
+      tags: [catalogue]
+      security: [{}, { bearer: [] }]
+      parameters:
+        - { name: type, in: query, schema: { type: string }, description: "Comma-separated asset types" }
+        - { name: genre, in: query, schema: { type: string } }
+        - { name: mood, in: query, schema: { type: string } }
+        - { name: topic, in: query, schema: { type: string } }
+        - { name: language, in: query, schema: { type: string } }
+        - { name: mixable, in: query, schema: { type: boolean } }
+        - { name: minDurationMs, in: query, schema: { type: integer } }
+        - { name: maxDurationMs, in: query, schema: { type: integer } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses: { "200": { $ref: "#/components/responses/AssetPage" } }
+  /v1/assets/{assetId}:
+    get:
+      tags: [catalogue]
+      security: [{}, { bearer: [] }]
+      parameters: [{ $ref: "#/components/parameters/AssetId" }]
+      responses:
+        "200": { description: Asset detail, content: { application/json: { schema: { $ref: "#/components/schemas/AssetDetail" } } } }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/creators/{creatorId}:
+    get:
+      tags: [catalogue]
+      security: [{}, { bearer: [] }]
+      parameters: [{ name: creatorId, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Creator with assets and shows } }
+  /v1/creators/{id}/follow:
+    put: { tags: [library], parameters: [{ $ref: "#/components/parameters/Id" }], responses: { "204": { description: Followed } } }
+    delete: { tags: [library], parameters: [{ $ref: "#/components/parameters/Id" }], responses: { "204": { description: Unfollowed } } }
+  /v1/genres:
+    get: { tags: [catalogue], security: [{}, { bearer: [] }], responses: { "200": { $ref: "#/components/responses/TagList" } } }
+  /v1/moods:
+    get: { tags: [catalogue], security: [{}, { bearer: [] }], responses: { "200": { $ref: "#/components/responses/TagList" } } }
+  /v1/collections:
+    get: { tags: [catalogue], security: [{}, { bearer: [] }], responses: { "200": { description: Curated collections } } }
+  /v1/collections/{collectionId}:
+    get:
+      tags: [catalogue]
+      security: [{}, { bearer: [] }]
+      parameters: [{ name: collectionId, in: path, required: true, schema: { type: string }, description: "UUID or slug" }]
+      responses: { "200": { description: Collection with items } }
+  /v1/search:
+    get:
+      tags: [catalogue]
+      security: [{}, { bearer: [] }]
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, maxLength: 200 } }
+        - { name: types, in: query, schema: { type: string, example: "music,episode,speech,show,artist" } }
+        - { name: genre, in: query, schema: { type: string } }
+        - { name: mood, in: query, schema: { type: string } }
+        - { name: content, in: query, schema: { enum: [music, spoken] } }
+        - { name: language, in: query, schema: { type: string } }
+        - { name: minDurationMs, in: query, schema: { type: integer } }
+        - { name: maxDurationMs, in: query, schema: { type: integer } }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Results grouped by kind
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query: { type: string }
+                  tracks: { type: array, items: { $ref: "#/components/schemas/Asset" } }
+                  albums: { type: array, items: { type: object } }
+                  artists: { type: array, items: { type: object } }
+                  shows: { type: array, items: { $ref: "#/components/schemas/Show" } }
+                  episodes: { type: array, items: { $ref: "#/components/schemas/Asset" } }
+                  speeches: { type: array, items: { $ref: "#/components/schemas/Asset" } }
+
+  /v1/playback/authorize:
+    post:
+      tags: [playback]
+      summary: Revalidate rights and issue a short-lived signed media URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assetId]
+              properties:
+                assetId: { type: string, format: uuid }
+                context: { enum: [stream, offline_download, fusion_preview] }
+                quality: { enum: [auto, high, data_saver] }
+      responses:
+        "200": { description: Authorized, content: { application/json: { schema: { $ref: "#/components/schemas/PlaybackAuthorization" } } } }
+        "403": { $ref: "#/components/responses/Error" }
+  /v1/media/{token}:
+    get:
+      tags: [playback]
+      security: []
+      summary: Signed media endpoint (Range supported). Rights are rechecked on every request.
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Audio bytes }
+        "206": { description: Partial audio bytes }
+        "302": { description: Redirect to the open-licence origin }
+        "410": { $ref: "#/components/responses/Error" }
+  /v1/playback/progress:
+    post:
+      tags: [playback]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [assetId, positionMs], properties: { assetId: { type: string }, positionMs: { type: integer, minimum: 0 }, completed: { type: boolean }, durationMs: { type: integer } } }
+      responses: { "200": { description: Saved, content: { application/json: { schema: { $ref: "#/components/schemas/Progress" } } } } }
+  /v1/playback/progress/{assetId}:
+    get:
+      tags: [playback]
+      parameters: [{ $ref: "#/components/parameters/AssetId" }]
+      responses: { "200": { description: Progress, content: { application/json: { schema: { $ref: "#/components/schemas/Progress" } } } } }
+  /v1/playback/recent:
+    get: { tags: [playback], parameters: [{ $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Listening history } } }
+  /v1/playback/events:
+    post:
+      tags: [playback]
+      summary: Batch analytics events (allow-listed names and properties; pseudonymous; rate-limited)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [events]
+              properties:
+                platform: { enum: [ios, android, web] }
+                events:
+                  type: array
+                  maxItems: 100
+                  items: { type: object, required: [name], properties: { name: { type: string }, occurredAt: { type: string, format: date-time }, properties: { type: object } } }
+      responses: { "202": { description: Accepted } }
+
+  /v1/library:
+    get: { tags: [library], responses: { "200": { description: Library snapshot (server-authoritative) } } }
+  /v1/library/likes:
+    get: { tags: [library], responses: { "200": { description: Liked asset ids } } }
+  /v1/library/likes/{assetId}:
+    put: { tags: [library], parameters: [{ $ref: "#/components/parameters/AssetId" }], responses: { "204": { description: Liked (idempotent) } } }
+    delete: { tags: [library], parameters: [{ $ref: "#/components/parameters/AssetId" }], responses: { "204": { description: Unliked } } }
+
+  /v1/playlists:
+    get: { tags: [playlists], responses: { "200": { description: Playlists } } }
+    post:
+      tags: [playlists]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string }, description: { type: string }, visibility: { enum: [private, unlisted, public] }, assetIds: { type: array, items: { type: string } } } } } }
+      responses: { "201": { $ref: "#/components/responses/Playlist" } }
+  /v1/playlists/{playlistId}:
+    parameters: [{ $ref: "#/components/parameters/PlaylistId" }]
+    get: { tags: [playlists], responses: { "200": { $ref: "#/components/responses/Playlist" } } }
+    patch:
+      tags: [playlists]
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, description: { type: [string, "null"] }, visibility: { type: string }, version: { type: integer } } } } } }
+      responses:
+        "200": { $ref: "#/components/responses/Playlist" }
+        "409": { $ref: "#/components/responses/Error" }
+    delete: { tags: [playlists], responses: { "204": { description: Deleted } } }
+  /v1/playlists/{playlistId}/items:
+    parameters: [{ $ref: "#/components/parameters/PlaylistId" }]
+    post:
+      tags: [playlists]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [assetId], properties: { assetId: { type: string }, position: { type: integer }, version: { type: integer } } } } } }
+      responses: { "201": { $ref: "#/components/responses/Playlist" }, "409": { $ref: "#/components/responses/Error" } }
+  /v1/playlists/{playlistId}/items/reorder:
+    parameters: [{ $ref: "#/components/parameters/PlaylistId" }]
+    patch:
+      tags: [playlists]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [itemIds], properties: { itemIds: { type: array, items: { type: string } }, version: { type: integer } } } } } }
+      responses: { "200": { $ref: "#/components/responses/Playlist" }, "409": { $ref: "#/components/responses/Error" } }
+  /v1/playlists/{playlistId}/items/{itemId}:
+    parameters: [{ $ref: "#/components/parameters/PlaylistId" }, { name: itemId, in: path, required: true, schema: { type: string } }]
+    delete: { tags: [playlists], parameters: [{ name: version, in: query, schema: { type: integer } }], responses: { "200": { $ref: "#/components/responses/Playlist" } } }
+
+  /v1/podcasts:
+    get:
+      tags: [podcasts]
+      security: [{}, { bearer: [] }]
+      parameters: [{ name: category, in: query, schema: { type: string } }, { name: kind, in: query, schema: { enum: [podcast, speech_series] } }]
+      responses: { "200": { description: Shows } }
+  /v1/podcasts/{showId}:
+    get: { tags: [podcasts], security: [{}, { bearer: [] }], parameters: [{ $ref: "#/components/parameters/ShowId" }], responses: { "200": { description: Show, content: { application/json: { schema: { $ref: "#/components/schemas/Show" } } } } } }
+  /v1/podcasts/{showId}/episodes:
+    get: { tags: [podcasts], security: [{}, { bearer: [] }], parameters: [{ $ref: "#/components/parameters/ShowId" }, { $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { $ref: "#/components/responses/AssetPage" } } }
+  /v1/podcasts/{id}/follow:
+    put: { tags: [podcasts], parameters: [{ $ref: "#/components/parameters/Id" }], responses: { "204": { description: Followed } } }
+    delete: { tags: [podcasts], parameters: [{ $ref: "#/components/parameters/Id" }], responses: { "204": { description: Unfollowed } } }
+  /v1/episodes/{episodeId}:
+    get: { tags: [podcasts], security: [{}, { bearer: [] }], parameters: [{ name: episodeId, in: path, required: true, schema: { type: string, format: uuid } }], responses: { "200": { description: Episode with chapters, bookmarks and progress } } }
+  /v1/assets/{assetId}/transcript:
+    get:
+      tags: [podcasts]
+      security: [{}, { bearer: [] }]
+      parameters: [{ $ref: "#/components/parameters/AssetId" }]
+      responses:
+        "200": { description: Transcript, content: { application/json: { schema: { type: object, properties: { assetId: { type: string }, segments: { type: array, items: { $ref: "#/components/schemas/TranscriptSegment" } } } } } } }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/assets/{assetId}/bookmarks:
+    parameters: [{ $ref: "#/components/parameters/AssetId" }]
+    get: { tags: [podcasts], responses: { "200": { description: Bookmarks } } }
+    post:
+      tags: [podcasts]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [positionMs], properties: { positionMs: { type: integer }, note: { type: string, maxLength: 280 } } } } } }
+      responses: { "201": { description: Bookmark with shareable timestamp link, content: { application/json: { schema: { $ref: "#/components/schemas/Bookmark" } } } } }
+  /v1/bookmarks/{bookmarkId}:
+    delete: { tags: [podcasts], parameters: [{ name: bookmarkId, in: path, required: true, schema: { type: string } }], responses: { "204": { description: Deleted } } }
+  /v1/motivation/topics:
+    get: { tags: [motivation], security: [{}, { bearer: [] }], responses: { "200": { $ref: "#/components/responses/TagList" } } }
+  /v1/motivation/featured:
+    get: { tags: [motivation], security: [{}, { bearer: [] }], parameters: [{ name: topic, in: query, schema: { type: string } }], responses: { "200": { description: "Daily featured speech, short and long sessions, speakers" } } }
+
+  /v1/fusion/status:
+    get: { tags: [fusion], security: [{}, { bearer: [] }], responses: { "200": { description: "AI availability, provider disclosure, manual editor availability" } } }
+  /v1/fusion/plan:
+    post:
+      tags: [fusion]
+      summary: Prompt to validated mix plan (rate limited, per-user daily quota, deterministic fallback)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "./schemas/fusion-request.schema.json" } } } }
+      responses:
+        "200":
+          description: Validated plan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan: { $ref: "./schemas/mix-plan.schema.json" }
+                  provider: { type: string }
+                  warnings: { type: array, items: { type: string } }
+                  assets: { type: array, items: { $ref: "#/components/schemas/Asset" } }
+                  validation: { $ref: "#/components/schemas/Validation" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /v1/fusion/validate:
+    post:
+      tags: [fusion]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [plan], properties: { plan: { $ref: "./schemas/mix-plan.schema.json" }, requireExport: { type: boolean } } } } } }
+      responses: { "200": { description: Schema, semantic and rights result, content: { application/json: { schema: { $ref: "#/components/schemas/Validation" } } } } }
+  /v1/fusion/recipes:
+    get: { tags: [fusion], responses: { "200": { description: Saved recipes } } }
+    post:
+      tags: [fusion]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name, plan], properties: { name: { type: string }, prompt: { type: string }, plan: { $ref: "./schemas/mix-plan.schema.json" }, planner: { type: string } } } } } }
+      responses: { "201": { description: Saved, content: { application/json: { schema: { $ref: "#/components/schemas/MixRecipe" } } } } }
+  /v1/fusion/recipes/{recipeId}:
+    parameters: [{ $ref: "#/components/parameters/RecipeId" }]
+    get: { tags: [fusion], responses: { "200": { description: Recipe (rights revalidated), content: { application/json: { schema: { $ref: "#/components/schemas/MixRecipe" } } } } } }
+    patch:
+      tags: [fusion]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, plan: { $ref: "./schemas/mix-plan.schema.json" }, version: { type: integer } } } } } }
+      responses: { "200": { description: Updated }, "409": { $ref: "#/components/responses/Error" } }
+    delete: { tags: [fusion], responses: { "204": { description: Deleted } } }
+  /v1/fusion/recipes/{recipeId}/playback-authorize:
+    parameters: [{ $ref: "#/components/parameters/RecipeId" }]
+    post:
+      tags: [fusion]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { policy: { enum: [block_layer, block_recipe] } } } } } }
+      responses:
+        "200": { $ref: "#/components/responses/PlanAuthorization" }
+        "403": { $ref: "#/components/responses/Error" }
+  /v1/fusion/preview-authorize:
+    post:
+      tags: [fusion]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [plan], properties: { plan: { $ref: "./schemas/mix-plan.schema.json" } } } } } }
+      responses: { "200": { $ref: "#/components/responses/PlanAuthorization" }, "403": { $ref: "#/components/responses/Error" } }
+  /v1/fusion/recipes/{recipeId}/share:
+    parameters: [{ $ref: "#/components/parameters/RecipeId" }]
+    post: { tags: [fusion], responses: { "201": { description: Share token (rights-gated) } } }
+    delete: { tags: [fusion], responses: { "204": { description: Share revoked } } }
+  /v1/shared/recipes/{token}:
+    get: { tags: [fusion], security: [{}, { bearer: [] }], parameters: [{ name: token, in: path, required: true, schema: { type: string } }], responses: { "200": { description: Shared recipe (no media URLs) } } }
+  /v1/fusion/render:
+    post:
+      tags: [fusion]
+      summary: Authorize an offline render (client-side). Requires derivative_render rights for every layer.
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [recipeId], properties: { recipeId: { type: string } } } } } }
+      responses: { "202": { description: Render job authorized }, "403": { $ref: "#/components/responses/Error" } }
+  /v1/fusion/render-jobs/{jobId}:
+    get: { tags: [fusion], parameters: [{ $ref: "#/components/parameters/JobId" }], responses: { "200": { description: Render job } } }
+  /v1/fusion/render-jobs/{jobId}/complete:
+    post:
+      tags: [fusion]
+      parameters: [{ $ref: "#/components/parameters/JobId" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { status: { enum: [completed, failed] }, error: { type: string } } } } } }
+      responses: { "200": { description: Updated } }
+  /v1/fusion/suggestions:
+    get: { tags: [fusion], parameters: [{ name: assetId, in: query, required: true, schema: { type: string } }], responses: { "200": { description: Tempo/key/genre compatible assets } } }
+  /v1/fusion/stems:
+    post: { tags: [fusion], responses: { "501": { $ref: "#/components/responses/Error" } } }
+
+  /v1/admin/stats:
+    get: { tags: [admin], responses: { "200": { description: Catalogue, rights, ingestion and event dashboards } } }
+  /v1/admin/ingest:
+    post: { tags: [admin], requestBody: { content: { application/json: { schema: { type: object, properties: { sources: { type: array, items: { enum: [internet_archive_music, librivox, podcasts] } } } } } } }, responses: { "202": { description: Started } } }
+  /v1/admin/assets/{assetId}/rights:
+    parameters: [{ $ref: "#/components/parameters/AssetId" }]
+    get: { tags: [admin], responses: { "200": { description: Grants (incl. private proof references) and audit log } } }
+    post: { tags: [admin], requestBody: { required: true, content: { application/json: { schema: { type: object } } } }, responses: { "201": { description: Grant added } } }
+  /v1/admin/rights/{grantId}:
+    post: { tags: [admin], parameters: [{ name: grantId, in: path, required: true, schema: { type: string } }], requestBody: { required: true, content: { application/json: { schema: { type: object, required: [status], properties: { status: { enum: [active, revoked, under_review, expired] }, reason: { type: string }, allowedUses: { type: array, items: { type: string } } } } } } }, responses: { "200": { description: Updated } } }
+  /v1/admin/assets/{assetId}/takedown:
+    post: { tags: [admin], parameters: [{ $ref: "#/components/parameters/AssetId" }], requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string } } } } } }, responses: { "200": { description: Taken down } } }
+  /v1/admin/assets/{assetId}/restore:
+    post: { tags: [admin], parameters: [{ $ref: "#/components/parameters/AssetId" }], responses: { "200": { description: Restored (grants stay revoked) } } }
+  /v1/admin/audit:
+    get: { tags: [admin], parameters: [{ $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Audit log } } }
+  /v1/admin/retention:
+    post: { tags: [admin], responses: { "200": { description: Retention job result } } }
+
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    AssetId: { name: assetId, in: path, required: true, schema: { type: string, format: uuid } }
+    PlaylistId: { name: playlistId, in: path, required: true, schema: { type: string, format: uuid } }
+    RecipeId: { name: recipeId, in: path, required: true, schema: { type: string, format: uuid } }
+    ShowId: { name: showId, in: path, required: true, schema: { type: string, format: uuid } }
+    JobId: { name: jobId, in: path, required: true, schema: { type: string, format: uuid } }
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50 } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, schema: { type: string, maxLength: 128 } }
+    IfMatch: { name: If-Match, in: header, schema: { type: string }, description: 'Playlist version, e.g. "3"' }
+  responses:
+    Error:
+      description: Error envelope
+      content: { application/json: { schema: { $ref: "#/components/schemas/ErrorEnvelope" } } }
+    Tokens:
+      description: Session tokens
+      content: { application/json: { schema: { $ref: "#/components/schemas/Tokens" } } }
+    AssetPage:
+      description: Page of assets
+      content:
+        application/json:
+          schema: { type: object, properties: { items: { type: array, items: { $ref: "#/components/schemas/Asset" } }, nextCursor: { type: [string, "null"] } } }
+    TagList:
+      description: Tags
+      content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { type: object, properties: { id: { type: string }, name: { type: string }, assetCount: { type: integer } } } } } } } }
+    Playlist:
+      description: Playlist (ETag header carries version)
+      content: { application/json: { schema: { $ref: "#/components/schemas/Playlist" } } }
+    PlanAuthorization:
+      description: Plan with blocked layers removed and per-asset signed media
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              plan: { $ref: "./schemas/mix-plan.schema.json" }
+              media: { type: object, additionalProperties: { $ref: "#/components/schemas/MediaGrant" } }
+              blockedLayers: { type: array, items: { type: object, properties: { layerId: { type: string }, assetId: { type: string }, reason: { type: string }, message: { type: string } } } }
+              assets: { type: array, items: { type: object } }
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId, retryable]
+          properties:
+            code: { type: string, example: ASSET_NOT_AVAILABLE }
+            message: { type: string }
+            requestId: { type: string }
+            retryable: { type: boolean }
+            details: {}
+    Tokens:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiresIn: { type: integer }
+        tokenType: { const: Bearer }
+        user: { $ref: "#/components/schemas/User" }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: [string, "null"] }
+        displayName: { type: string }
+        avatarUrl: { type: [string, "null"] }
+        locale: { type: string }
+        territory: { type: string }
+        isGuest: { type: boolean }
+        isAdmin: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Me:
+      allOf: [{ $ref: "#/components/schemas/User" }, { type: object, properties: { preferences: { $ref: "#/components/schemas/Preferences" } } }]
+    Preferences:
+      type: object
+      properties:
+        genres: { type: array, items: { type: string } }
+        moods: { type: array, items: { type: string } }
+        speechTopics: { type: array, items: { type: string } }
+        explicitAllowed: { type: boolean }
+        analyticsOptIn: { type: boolean }
+        aiProcessingConsent: { type: boolean }
+    Capabilities:
+      type: object
+      properties: { stream: { type: boolean }, download: { type: boolean }, mix: { type: boolean }, render: { type: boolean } }
+    Asset:
+      type: object
+      required: [id, title, assetType, durationMs, capabilities]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        subtitle: { type: [string, "null"] }
+        description: { type: [string, "null"] }
+        assetType: { enum: [music, speech, podcast_episode, loop, stem, sound_effect] }
+        creatorId: { type: [string, "null"] }
+        creator: { type: [object, "null"], properties: { id: { type: string }, name: { type: string }, creatorType: { type: string } } }
+        albumId: { type: [string, "null"] }
+        showId: { type: [string, "null"] }
+        showTitle: { type: [string, "null"] }
+        durationMs: { type: integer }
+        artworkUrl: { type: [string, "null"] }
+        streamingFormat: { enum: [hls, progressive, local] }
+        language: { type: string }
+        genres: { type: array, items: { type: string } }
+        moods: { type: array, items: { type: string } }
+        topics: { type: array, items: { type: string } }
+        tempoBpm: { type: [number, "null"] }
+        key: { type: [string, "null"] }
+        isExplicit: { type: boolean }
+        isActive: { type: boolean }
+        isDevFixture: { type: boolean }
+        releaseDate: { type: [string, "null"] }
+        episodeNumber: { type: [integer, "null"] }
+        capabilities: { $ref: "#/components/schemas/Capabilities" }
+        license: { type: [object, "null"], properties: { type: { type: string }, url: { type: [string, "null"] }, attribution: { type: [string, "null"] }, rightsHolder: { type: string } } }
+        createdAt: { type: string }
+    AssetDetail:
+      allOf:
+        - { $ref: "#/components/schemas/Asset" }
+        - type: object
+          properties:
+            chapters: { type: array, items: { type: object, properties: { startMs: { type: integer }, title: { type: string } } } }
+            hasTranscript: { type: boolean }
+            liked: { type: boolean }
+    Show:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: [string, "null"] }
+        artworkUrl: { type: [string, "null"] }
+        showKind: { enum: [podcast, speech_series] }
+        creatorName: { type: [string, "null"] }
+        episodeCount: { type: integer }
+        following: { type: boolean }
+    Shelf:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        kind: { enum: [assets, shows, mixes, topics] }
+        items: { type: array, items: {} }
+    MediaGrant:
+      type: object
+      properties:
+        assetId: { type: string }
+        url: { type: string, description: Short-lived signed URL. Never persist. }
+        expiresAt: { type: string, format: date-time }
+        mimeType: { type: string }
+        format: { type: string }
+        purpose: { enum: [stream, offline_download, mix, derivative_render] }
+    PlaybackAuthorization:
+      allOf:
+        - { $ref: "#/components/schemas/MediaGrant" }
+        - type: object
+          properties:
+            quality: { type: string }
+            capabilities: { type: object }
+            resumePositionMs: { type: integer }
+            attribution: { type: [string, "null"] }
+    Progress:
+      type: object
+      properties: { assetId: { type: string }, positionMs: { type: integer }, completed: { type: boolean }, updatedAt: { type: [string, "null"] } }
+    Playlist:
+      type: object
+      properties:
+        id: { type: string }
+        ownerId: { type: string }
+        name: { type: string }
+        description: { type: [string, "null"] }
+        visibility: { enum: [private, unlisted, public] }
+        version: { type: integer }
+        items:
+          type: array
+          items: { type: object, properties: { id: { type: string }, playlistId: { type: string }, assetId: { type: string }, position: { type: integer }, addedAt: { type: string }, asset: { $ref: "#/components/schemas/Asset" } } }
+    TranscriptSegment:
+      type: object
+      properties: { id: { type: string }, startMs: { type: integer }, endMs: { type: integer }, text: { type: string }, speaker: { type: [string, "null"] } }
+    Bookmark:
+      type: object
+      properties: { id: { type: string }, assetId: { type: string }, positionMs: { type: integer }, note: { type: [string, "null"] }, createdAt: { type: string }, shareUrl: { type: string } }
+    Validation:
+      type: object
+      properties:
+        schemaValid: { type: boolean }
+        valid: { type: boolean }
+        rightsStatus: { enum: [valid, invalid, needs_review] }
+        errors: { type: array, items: { type: object, properties: { code: { type: string }, message: { type: string }, layerId: { type: string }, assetId: { type: string }, path: { type: string } } } }
+        warnings: { type: array, items: { type: string } }
+    MixRecipe:
+      type: object
+      properties:
+        id: { type: string }
+        ownerId: { type: string }
+        name: { type: string }
+        prompt: { type: [string, "null"] }
+        durationMs: { type: integer }
+        mixPlanVersion: { type: integer }
+        mixPlan: { $ref: "./schemas/mix-plan.schema.json" }
+        rightsValidationStatus: { enum: [valid, invalid, needs_review] }
+        planner: { type: string }
+        version: { type: integer }
+        createdAt: { type: string }
+        updatedAt: { type: string }
