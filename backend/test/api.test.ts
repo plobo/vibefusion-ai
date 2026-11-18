@@ -712,6 +712,14 @@ describe("privacy & admin", () => {
         })
       ).statusCode,
     ).toBe(403);
+    // Taken-down assets must disappear from collection tiles (artwork and counts), not just from item lists.
+    const cols = (await ctx.app.inject({ url: "/v1/collections" })).json().items as {
+      slug: string;
+      itemCount: number;
+    }[];
+    const calm = (await ctx.app.inject({ url: "/v1/collections/calm-focus" })).json();
+    expect(calm.items.some((a: { id: string }) => a.id === rain)).toBe(false);
+    expect(cols.find((c) => c.slug === "calm-focus")?.itemCount).toBe(calm.items.length);
     const stats = await ctx.app.inject({ url: "/v1/admin/stats", headers: admin.headers });
     expect(stats.statusCode).toBe(200);
     const metrics = await ctx.app.inject({ url: "/metrics" });

@@ -207,8 +207,8 @@ export function catalogueRoutes(app: FastifyInstance, deps: AppDeps): void {
   app.get("/v1/collections", async () => {
     const rows = await db.query(
       `SELECT c.id, c.slug, c.title, c.description,
-         (SELECT a.artwork_url FROM collection_items ci JOIN audio_assets a ON a.id = ci.asset_id WHERE ci.collection_id = c.id AND a.artwork_url IS NOT NULL ORDER BY ci.position LIMIT 1) AS "artworkUrl",
-         (SELECT count(*)::int FROM collection_items ci WHERE ci.collection_id = c.id) AS "itemCount"
+         (SELECT a.artwork_url FROM collection_items ci JOIN audio_assets a ON a.id = ci.asset_id WHERE ci.collection_id = c.id AND a.is_active AND a.artwork_url IS NOT NULL ORDER BY ci.position LIMIT 1) AS "artworkUrl",
+         (SELECT count(*)::int FROM collection_items ci JOIN audio_assets a ON a.id = ci.asset_id WHERE ci.collection_id = c.id AND a.is_active) AS "itemCount"
        FROM collections c ORDER BY c.title`,
     );
     return { items: rows };

@@ -12,6 +12,34 @@ deterministically on device.
 | Contracts | OpenAPI 3.1, JSON Schema (mix plan), cross-platform fixtures | [`contracts/`](contracts) |
 | Docs & ADRs | Architecture, API, data model, audio engine, rights policy, test plan | [`docs/`](docs) |
 
+## Screenshots
+
+Captured from the running apps against the local backend with real open-licence content
+(iOS via `ScreenshotTests`, Android on the API 36 emulator).
+
+### iOS
+
+| Home | Discover | Podcasts | Motivation |
+|---|---|---|---|
+| <img src="docs/screenshots/ios/03-home.png" width="200"> | <img src="docs/screenshots/ios/04-discover.png" width="200"> | <img src="docs/screenshots/ios/05-podcasts.png" width="200"> | <img src="docs/screenshots/ios/10-motivation.png" width="200"> |
+
+| Player | AI Studio | Mix editor | Fusion preview |
+|---|---|---|---|
+| <img src="docs/screenshots/ios/06-player.png" width="200"> | <img src="docs/screenshots/ios/07-studio.png" width="200"> | <img src="docs/screenshots/ios/08-editor.png" width="200"> | <img src="docs/screenshots/ios/09-fusion-preview.png" width="200"> |
+
+| Welcome | Interests |
+|---|---|
+| <img src="docs/screenshots/ios/01-welcome.png" width="200"> | <img src="docs/screenshots/ios/02-interests.png" width="200"> |
+
+### Android
+
+| Welcome | AI Studio | Mix editor | Fusion preview |
+|---|---|---|---|
+| <img src="docs/screenshots/android/01-welcome.png" width="200"> | <img src="docs/screenshots/android/02-studio.png" width="200"> | <img src="docs/screenshots/android/03-editor.png" width="200"> | <img src="docs/screenshots/android/04-fusion-preview.png" width="200"> |
+
+Regenerate the iOS set with a backend running:
+`TEST_RUNNER_VF_SCREENSHOTS=1 TEST_RUNNER_VF_TEST_SERVER=http://localhost:8080 xcodebuild test -project ios/VibeFusion.xcodeproj -scheme VibeFusion -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:VibeFusionUITests/ScreenshotTests`
+
 ## Content: free sources only
 
 No commercial catalogue and no unlicensed streams. Every asset is ingested together with a **rights grant**

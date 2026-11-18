@@ -27,6 +27,7 @@
 		E40A9490BBEE5D350B8A7419 /* VFCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7B256A25AC75EABB1EC20BE3 /* VFCore */; };
 		F829A2F61BF65B6FD9BB83B1 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646A89D3A65063290FC414EA /* RootView.swift */; };
 		FDB9F02E4A830CC05E93892B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3E9740DB746CD5C5E4F88C7 /* Assets.xcassets */; };
+		FF9EBA9BBA7815935DF9321F /* ScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAC3C3606C099DE697782DA /* ScreenshotTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +55,7 @@
 		76A313A681620CD4FF31D68F /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		77AD30D90D35E6585EE456BF /* MixEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixEditorView.swift; sourceTree = "<group>"; };
 		96368F2F614E7AAF4449361E /* PlayerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViews.swift; sourceTree = "<group>"; };
+		AAAC3C3606C099DE697782DA /* ScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTests.swift; sourceTree = "<group>"; };
 		B602AD8A712D3894398C091C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C86FB342969B55603369851E /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		C90B98ABA0941EB54778FA89 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				CD4090FD24C944E33A682A20 /* CriticalJourneyUITests.swift */,
+				AAAC3C3606C099DE697782DA /* ScreenshotTests.swift */,
 			);
 			path = VibeFusionUITests;
 			sourceTree = "<group>";
@@ -359,6 +362,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0687E1CE05C2B58FAF498736 /* CriticalJourneyUITests.swift in Sources */,
+				FF9EBA9BBA7815935DF9321F /* ScreenshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
